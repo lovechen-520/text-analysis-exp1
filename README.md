@@ -2,6 +2,14 @@
 
 本目录是综合实验 1 的代码与产物目录。原始数据仍保留在 `D:\DSH-Workspaces\数据科学\`，不复制、不修改。
 
+## 0. 仓库说明（GitHub）
+
+- 本仓库只包含**源码、notebook 与结果图表**；原始数据（约 1.8 GB）与分词缓存（约 359 MB）体积过大，未纳入仓库。
+- 数据来源：大众点评商户点评数据集 `yf_dianping`（ChineseNlpCorpus），下载与字段说明见
+  <https://github.com/SophonPlus/ChineseNlpCorpus/blob/master/datasets/yf_dianping/intro.ipynb>。
+- 复现时请把 `preprocessed_ratings.csv`、`restaurants.csv`、`links.csv` 放到本地数据目录，并按需修改 `src/config.py` 的 `DATA_DIR`。
+- 实验报告与 PPT 作为课程材料单独提交，不在本仓库内；随机种子为 42，运行顺序见第 4 节。
+
 ## 1. 环境
 
 - 解释器：`C:\mlenv\Scripts\python.exe`（Python 3.13.7）
