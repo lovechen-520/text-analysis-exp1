@@ -134,6 +134,26 @@ def add_table(cell, df: pd.DataFrame, caption: str = "", font=8.0):
     return t
 
 
+def table_model_results(tbl: pd.DataFrame) -> pd.DataFrame:
+    """把模型对比表转成中文表头、4 位小数、特征名规范化。"""
+    out = tbl[["features", "model", "accuracy", "macro_f1",
+               "f1_bad", "precision_bad", "recall_bad"]].copy()
+    out["features"] = out["features"].map({"tfidf": "TF-IDF", "count": "Count"})
+    out = out.rename(columns={"features": "特征", "model": "模型", "accuracy": "accuracy",
+                              "macro_f1": "macro-F1", "f1_bad": "差评 F1",
+                              "precision_bad": "差评 P", "recall_bad": "差评 R"})
+    return fmt4(out)
+
+
+def fmt4(df: pd.DataFrame) -> pd.DataFrame:
+    """浮点列统一显示为 4 位小数（避免 0.945 / 0.9450 混排）。"""
+    out = df.copy()
+    for c in out.columns:
+        if pd.api.types.is_float_dtype(out[c]):
+            out[c] = out[c].map(lambda v: f"{v:.4f}")
+    return out
+
+
 def add_pic(cell, filename, caption="", width=13.4):
     path = FIG / filename
     if not path.exists():
@@ -247,9 +267,18 @@ def fill_steps(cell):
         "用途": ["主数据（任务 3–11）", "商户名称", "点评 ID 映射（未使用）"],
     })
     add_table(cell, data_tbl, "表 1  实验数据文件")
+    par(cell, "装载与查看前几行（过程见 notebook 01_data_label.ipynb）：", indent=True)
+    code_block(cell, """import pandas as pd
+df = pd.read_csv("preprocessed_ratings.csv")
+print(df.shape)          # (4107199, 8)
+df.head()""")
+    par(cell, "前几行为 userId、restId、rating、rating_env、rating_flavor、rating_service、timestamp（毫秒）"
+              "与 comment；例如第 1 行为 userId=0、restId=0、rating=3.6、comment=“经常去的，不过我自己的卡很久不用……”"
+              "——该行原始评分缺失，被填充为 3.6。", indent=True)
     par(cell, "复核发现两个必须处理的问题：（1）缺失的 rating 被全局均值填充为 3.6，共 1,127,570 行（27.45%），"
               "而真实评分只取整数 0–5，因此可用 rating==3.6 精确识别伪值并剔除；"
-              "（2）2009 年 12 月以前几乎没有有效星级，情感分类与时间趋势只能覆盖 2009-07～2012-02。", indent=True)
+              "（2）2009 年 7 月以前基本没有有效星级（2009-07～2009-11 仅 15%～53% 有星级，2009-12 起才基本完整），"
+              "因此情感分类与时间趋势主要覆盖 2009-07～2012-02。", indent=True)
     miss = pd.DataFrame({
         "字段": ["userId", "restId", "rating", "rating_env", "rating_flavor", "rating_service", "timestamp", "comment"],
         "缺失数（导出文件复核）": [0, 0, 0, 0, 0, 0, 0, 0],
@@ -277,7 +306,14 @@ def fill_steps(cell):
         "标签": ["1 好评", "1 好评", "-1 中性", "0 差评", "0 差评", "删除", "NaN 无标签"],
     })
     add_table(cell, lab, "表 4  评分分布与标签映射")
-    par(cell, "最终有效评分 2,979,629 条：好评 1,721,499、差评 220,962、三星 1,037,168；极化样本好评率 88.62%。"
+    code_block(cell, """import numpy as np
+df["is_imputed_rating"] = np.isclose(df["rating"], 3.6)
+df = df[df["rating"] != 0.0]                       # 删除 15 条 0 分异常
+df["label"] = np.select(
+    [df["rating"].between(4, 5), df["rating"].between(1, 2), df["rating"].eq(3)],
+    [1, 0, -1], default=np.nan)                    # 1 好评 / 0 差评 / -1 中性""")
+    par(cell, "最终有效评分 2,979,629 条（含 15 条 0 分异常，删除后 2,979,614 条）："
+              "好评 1,721,499、差评 220,947、三星 1,037,168；极化样本好评率 88.62%。"
               "由于好评:差评≈7.8:1，仅报告 accuracy 会被“全猜好评”的 88.63% 基线掩盖，需同时报告 macro-F1 与混淆矩阵。", indent=True)
     add_pic(cell, "fig01_label_distribution.png", "图 1  评分标签分布", width=12.0)
 
@@ -320,8 +356,19 @@ Xtr = tfidf.fit_transform(Xtr); Xte = tfidf.transform(Xte)""")
 
     # ---------------- 五、模型与评估
     h2(cell, "五、模型训练与评估（任务 7、8）")
+    code_block(cell, """from sklearn.naive_bayes import MultinomialNB
+from sklearn.linear_model import LogisticRegression
+from sklearn.svm import LinearSVC
+from sklearn.metrics import accuracy_score, f1_score
+models = {"MultinomialNB": MultinomialNB(),
+          "LogisticRegression": LogisticRegression(class_weight="balanced", max_iter=1000),
+          "LinearSVC": LinearSVC(class_weight="balanced")}
+for name, clf in models.items():
+    clf.fit(Xtr, ytr)
+    pred = clf.predict(Xte)
+    print(name, accuracy_score(yte, pred), f1_score(yte, pred, average="macro"))""")
     tbl_a = pd.read_csv(TAB / "model_compare_A_60w.csv")
-    show = tbl_a[["features", "model", "accuracy", "macro_f1", "f1_bad", "precision_bad", "recall_bad"]].round(4)
+    show = table_model_results(tbl_a)
     add_table(cell, show, "表 6  口径 A 模型对比（60 万抽样）")
     par(cell, "朴素贝叶斯 accuracy 最高（0.9450）但差评召回仅 0.5732，属于偏向多数类；逻辑回归与 LinearSVC 的 macro-F1 达 0.868，"
               "差评召回提升到 0.88–0.90，综合两类均衡性选择 LinearSVC 作为主模型。", indent=True)
@@ -336,16 +383,17 @@ Xtr = tfidf.fit_transform(Xtr); Xte = tfidf.transform(Xte)""")
     ]:
         par(cell, "• " + s, indent=False)
     tbl_b = pd.read_csv(TAB / "model_compare_B_60w.csv")
-    add_table(cell, tbl_b[["features", "model", "accuracy", "macro_f1", "f1_bad", "recall_bad"]].round(4),
-              "表 7  口径 B（三星并入差评）模型对比（60 万抽样）")
-    par(cell, "口径 B 类别更平衡但三星文本语义中性、噪声大，最佳 accuracy 仅 0.7522、macro-F1 0.7474，"
+    add_table(cell, table_model_results(tbl_b), "表 7  口径 B（三星并入差评）模型对比（60 万抽样）")
+    par(cell, "口径 B 类别更平衡（好评 57.8% / 差评 42.2%，其“全猜好评”基线为 57.8%），但三星文本语义中性、噪声大，"
+              "最佳 accuracy 0.7522、macro-F1 0.7474，明显低于口径 A（0.9403 / 0.8680），"
               "说明把中性三星并入差评会引入标签噪声，口径 A 更合理。", indent=True)
     full_csv = TAB / "model_compare_A_full.csv"
     if full_csv.exists():
         full = pd.read_csv(full_csv)
-        add_table(cell, full[["features", "model", "accuracy", "macro_f1", "f1_bad", "precision_bad", "recall_bad"]].round(4),
+        add_table(cell, table_model_results(full),
                   "表 8  口径 A 全量 194 万极化样本模型对比（训练 1,553,956 / 测试 388,490）")
-        par(cell, "全量训练后逻辑回归 accuracy 0.9395、macro-F1 0.8699，模型保存为 output/models/model_A_full.joblib，可直接推理。", indent=True)
+        par(cell, "全量训练后逻辑回归 accuracy 0.9395、macro-F1 0.8699，模型保存为 output/models/model_A_full.joblib"
+                  "（本地生成，未纳入 GitHub 仓库），可直接推理。", indent=True)
 
     # ---------------- 六、词云
     h2(cell, "六、词频与词云（任务 9）")
@@ -366,8 +414,10 @@ Xtr = tfidf.fit_transform(Xtr); Xte = tfidf.transform(Xte)""")
     add_pic(cell, "fig10_1_top10_ratio.png", "图 10  好评率最高 Top10 与最低 Bottom10", width=13.6)
     top10 = pd.read_csv(TAB / "top10_ratio.csv")
     top10["name"] = top10["name"].fillna("（无名称）")
-    add_table(cell, top10[["name", "n", "good", "bad", "lab", "ratio", "wilson"]].round(4),
-              "表 9  好评率最高 Top10（Wilson 下界排序）")
+    show10 = top10[["name", "n", "good", "bad", "lab", "ratio", "wilson"]].rename(columns={
+        "name": "商户", "n": "评论数", "good": "好评", "bad": "差评",
+        "lab": "极化样本", "ratio": "好评率", "wilson": "Wilson 下界"})
+    add_table(cell, fmt4(show10), "表 9  好评率最高 Top10（Wilson 下界排序）")
     par(cell, "10.2 由于 10.1 的 Top10 好评率均为 100%，周好评率恒为 1，无法体现变化；改用“评论量 Top10”"
               "（样本充足、含少量差评）展示时间趋势：按自然周聚合好评率，周样本<3 置空后做 4 周滚动。", indent=True)
     add_pic(cell, "fig10_2_weekly_ratio_top10.png", "图 11  评论量 Top10 商户周滚动好评率", width=13.6)
@@ -440,14 +490,15 @@ def fill_summary(cell):
               "三套词云与高频词、商户好评率 Top10、周趋势、雷达图以及关键词查询与单店四图分析。", indent=True)
     par(cell, "2. 主要结论：", indent=True, space_before=4)
     for s in [
-        "数据质量决定结论：27.45% 的评分是均值填充伪值、2009 年前基本无有效评分，不识别会直接导致标签与图表错误；",
+        "数据质量决定结论：27.45% 的评分是均值填充伪值、2009 年 7 月前基本无有效评分，不识别会直接导致标签与图表错误；",
         "口径 A 下 TF-IDF + LinearSVC 达到 accuracy 94.03%、macro-F1 0.868（全量 194 万模型 accuracy 0.9395、macro-F1 0.8699）；",
-        "把中性三星并入差评（口径 B）使 accuracy 降至 0.7522，说明标签口径对结论影响显著，必须显式说明；",
+        "把中性三星并入差评（口径 B）后最佳 accuracy 仅 0.7522（其全猜好评基线为 57.8%）、macro-F1 0.7474，"
+        "明显低于口径 A，说明标签口径对结论影响显著，必须显式说明；",
         "商户分析必须控制样本量：每店评论中位仅 3 条，Top10 需最小样本阈值与 Wilson 平滑；",
         "可视化结果与数据一致：好评率 88.62%，词云呈现“口味 > 环境 ≈ 服务”的评价结构。",
     ]:
         par(cell, "• " + s, indent=False)
-    par(cell, "3. 不足与改进：数据止于 2012 年 2 月且 2009 年前无评分，时间结论适用范围有限；"
+    par(cell, "3. 不足与改进：数据止于 2012 年 2 月且 2009 年 7 月前无评分，时间结论适用范围有限；"
               "未使用词向量或预训练模型（如 BERT）做对比；评论与星级存在少量不一致，可引入人工校验或弱监督降噪；"
               "商户名称缺失 14%，图表以 restId 回退显示。", indent=True, space_before=4)
     par(cell, "4. 心得体会：通过本实验完整走通了中文文本分析链路，体会到数据质量核查（尤其是缺失值填充带来的伪值）"
