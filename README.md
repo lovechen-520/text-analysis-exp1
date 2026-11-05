@@ -1,5 +1,7 @@
 # 综合实验 1《文本分析》—— 工程目录与使用说明
 
+仓库地址：<https://github.com/lovechen-520/text-analysis-exp1>（分支 `main`）
+
 本目录是综合实验 1 的代码与产物目录。原始数据仍保留在 `D:\DSH-Workspaces\数据科学\`，不复制、不修改。
 
 ## 0. 仓库说明（GitHub）

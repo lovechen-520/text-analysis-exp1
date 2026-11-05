@@ -15,6 +15,7 @@ from pathlib import Path
 import pandas as pd
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.opc.constants import RELATIONSHIP_TYPE as RT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
@@ -25,6 +26,8 @@ FIG = ROOT / "output" / "figures"
 TPL = ROOT / "template" / "实验报告模板.docx"
 OUT = ROOT / "综合实验1_实验报告.docx"
 BAK = ROOT / "综合实验1_实验报告_旧版.docx"
+
+REPO_URL = "https://github.com/lovechen-520/text-analysis-exp1"
 
 BODY = 10.5
 SMALL = 9
@@ -146,6 +149,29 @@ def add_pic(cell, filename, caption="", width=13.4):
         cp.alignment = WD_ALIGN_PARAGRAPH.CENTER
         r = cp.add_run(caption)
         style_run(r, size=SMALL, color=GRAY)
+
+
+def add_hyperlink(paragraph, url, text=None):
+    """在段落末尾追加一个可点击的外链。"""
+    r_id = paragraph.part.relate_to(url, RT.HYPERLINK, is_external=True)
+    hyperlink = OxmlElement("w:hyperlink")
+    hyperlink.set(qn("r:id"), r_id)
+    run = OxmlElement("w:r")
+    rPr = OxmlElement("w:rPr")
+    color = OxmlElement("w:color")
+    color.set(qn("w:val"), "0563C1")
+    rPr.append(color)
+    u = OxmlElement("w:u")
+    u.set(qn("w:val"), "single")
+    rPr.append(u)
+    run.append(rPr)
+    t = OxmlElement("w:t")
+    t.text = text or url
+    t.set(qn("xml:space"), "preserve")
+    run.append(t)
+    hyperlink.append(run)
+    paragraph._p.append(hyperlink)
+    return hyperlink
 
 
 # ------------------------------------------------------------------ 各栏目内容
@@ -368,32 +394,42 @@ Xtr = tfidf.fit_transform(Xtr); Xte = tfidf.transform(Xte)""")
 
     # ---------------- 九、代码与复现
     h2(cell, "九、源代码结构与复现说明")
-    par(cell, "源代码位于 D:\\DSH-Workspaces\\数据科学\\综合实验1\\，按任务拆分为 5 个 notebook（均已执行并保存输出），"
-              "复现代码封装在 src/ 模块中。目录如下：", indent=True)
-    code_block(cell, """综合实验1/
-├─ src/  config.py / data_utils.py / text_utils.py / agg_utils.py
-│        model_utils.py / viz_utils.py
-│        build_rest_agg.py / build_tokens.py / train_models.py / make_notebooks.py
+    par(cell, "源代码已托管至 GitHub 仓库：", indent=True)
+    add_hyperlink(cell.paragraphs[-1], REPO_URL, REPO_URL)
+    run = cell.paragraphs[-1].add_run("（分支 main）。按任务拆分为 5 个 notebook（均已执行并保存输出），"
+                                      "复现代码封装在 src/ 模块中。目录如下：")
+    style_run(run, size=BODY)
+    code_block(cell, """text-analysis-exp1/              # GitHub 仓库根目录
+├─ src/                          # 可复用模块与数据生产脚本
+│  ├─ config.py / data_utils.py / text_utils.py / agg_utils.py
+│  ├─ model_utils.py / viz_utils.py
+│  └─ build_rest_agg.py / build_tokens.py / train_models.py / make_notebooks.py
 ├─ notebooks/
-│  01_data_label.ipynb        任务 1–3
-│  02_tokenize_model.ipynb    任务 4–8
-│  03_wordcloud.ipynb         任务 9
-│  04_restaurant_viz.ipynb    任务 10
-│  05_query.ipynb             任务 11
-├─ output/figures|tables|models
-└─ cache/  tokens_labeled.tsv.gz / cnt_*.pkl""")
+│  ├─ 01_data_label.ipynb        任务 1–3
+│  ├─ 02_tokenize_model.ipynb    任务 4–8
+│  ├─ 03_wordcloud.ipynb         任务 9
+│  ├─ 04_restaurant_viz.ipynb    任务 10
+│  └─ 05_query.ipynb             任务 11
+├─ output/figures/               19 张结果图
+├─ output/tables/                模型对比等小表（rest_agg.csv 未入库）
+├─ stopwords.txt / userdict.txt
+└─ README.md                     数据来源与复现说明""")
     mapping = pd.DataFrame({
         "任务": ["1 装载", "2 缺失值", "3 标签", "4 清洗分词", "5 特征", "6 划分", "7 模型",
                  "8 评估+推理", "9 词云/词频", "10.1 Top10", "10.2 周趋势", "10.3 雷达图",
                  "11.1 查询", "11.2–11.5 单店"],
-        "代码位置": ["notebook 01", "notebook 01", "notebook 01", "notebook 02", "notebook 02", "notebook 02",
-                 "notebook 02", "notebook 02", "notebook 03", "notebook 04", "notebook 04", "notebook 04",
-                 "notebook 05", "notebook 05"],
+        "代码位置（GitHub 仓库内路径）": [
+            "notebooks/01_data_label.ipynb", "notebooks/01_data_label.ipynb", "notebooks/01_data_label.ipynb",
+            "notebooks/02_tokenize_model.ipynb", "notebooks/02_tokenize_model.ipynb", "notebooks/02_tokenize_model.ipynb",
+            "notebooks/02_tokenize_model.ipynb", "notebooks/02_tokenize_model.ipynb",
+            "notebooks/03_wordcloud.ipynb", "notebooks/04_restaurant_viz.ipynb",
+            "notebooks/04_restaurant_viz.ipynb", "notebooks/04_restaurant_viz.ipynb",
+            "notebooks/05_query.ipynb", "notebooks/05_query.ipynb"],
         "结果": ["表 1–3", "表 2", "表 4/图 1", "表 5", "四节代码", "四节", "表 6/图 2",
                  "图 3", "图 4–9", "图 10/表 9", "图 11", "图 12–13", "表 10", "图 14–19"],
     })
-    add_table(cell, mapping, "表 11  任务与代码、结果对照")
-    par(cell, "环境：Python 3.13.7（C:\\mlenv），pandas 3.0.5、scikit-learn 1.9.1、jieba 0.42.1、"
+    add_table(cell, mapping, "表 11  任务与代码、结果对照（路径相对 GitHub 仓库根目录）")
+    par(cell, "环境：Python 3.13.7（本地 C:\\mlenv），pandas 3.0.5、scikit-learn 1.9.1、jieba 0.42.1、"
               "wordcloud 1.9.6、matplotlib 3.11.1，随机种子 42。", indent=True)
 
 
