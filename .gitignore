@@ -1,0 +1,28 @@
+# 数据与缓存（体积大、可由脚本重新生成，不纳入仓库）
+cache/
+output/models/
+output/tables/rest_agg.csv
+template/
+
+# 备份与中间产物
+综合实验1_实验报告_旧版.docx
+*.smoke.*
+.ssh/
+
+# 报告与 PPT（按需求不放入代码仓库，单独提交）
+综合实验1_实验报告.docx
+综合实验1_实验报告.pdf
+综合实验1_汇报PPT.pptx
+
+# 冒烟测试 / 快速迭代产物
+output/tables/*_smoke*
+output/tables/*_2w*
+
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+# 系统
+Thumbs.db
+.DS_Store

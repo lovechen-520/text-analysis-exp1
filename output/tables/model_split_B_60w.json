@@ -1,0 +1,19 @@
+{
+  "scheme": "B",
+  "n_sample": 600000,
+  "n_train": 480000,
+  "n_test": 120000,
+  "pos_rate": 0.5778,
+  "best_features": "tfidf",
+  "best_model": "LogisticRegression",
+  "best_accuracy": 0.7522,
+  "best_macro_f1": 0.7474,
+  "test_size": 0.2,
+  "sample": 600000,
+  "max_features": 50000,
+  "min_df": 5,
+  "ngram": [
+    1,
+    2
+  ]
+}

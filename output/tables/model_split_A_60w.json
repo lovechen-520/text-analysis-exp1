@@ -1,0 +1,19 @@
+{
+  "scheme": "A",
+  "n_sample": 600000,
+  "n_train": 480000,
+  "n_test": 120000,
+  "pos_rate": 0.8863,
+  "best_features": "tfidf",
+  "best_model": "LinearSVC",
+  "best_accuracy": 0.9403,
+  "best_macro_f1": 0.868,
+  "test_size": 0.2,
+  "sample": 600000,
+  "max_features": 50000,
+  "min_df": 5,
+  "ngram": [
+    1,
+    2
+  ]
+}

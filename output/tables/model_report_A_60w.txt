@@ -1,0 +1,13 @@
+=== scheme=A best=LinearSVC ===
+confusion_matrix (rows=true, cols=pred):
+[[ 12019   1631]
+ [  5533 100817]]
+
+              precision    recall  f1-score   support
+
+       差评(0)     0.6848    0.8805    0.7704     13650
+       好评(1)     0.9841    0.9480    0.9657    106350
+
+    accuracy                         0.9403    120000
+   macro avg     0.8344    0.9142    0.8680    120000
+weighted avg     0.9500    0.9403    0.9435    120000

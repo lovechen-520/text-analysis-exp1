@@ -1,0 +1,13 @@
+=== scheme=B best=LogisticRegression ===
+confusion_matrix (rows=true, cols=pred):
+[[36880 13789]
+ [15948 53383]]
+
+              precision    recall  f1-score   support
+
+       差评(0)     0.6981    0.7279    0.7127     50669
+       好评(1)     0.7947    0.7700    0.7822     69331
+
+    accuracy                         0.7522    120000
+   macro avg     0.7464    0.7489    0.7474    120000
+weighted avg     0.7539    0.7522    0.7528    120000

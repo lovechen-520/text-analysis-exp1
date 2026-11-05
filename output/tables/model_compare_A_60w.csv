@@ -1,0 +1,6 @@
+﻿features,model,accuracy,macro_f1,f1_bad,precision_bad,recall_bad,train_sec,n_train,n_test,scheme
+tfidf,MultinomialNB,0.945,0.8366,0.7035,0.9105,0.5732,0.1,480000,120000,A
+tfidf,LogisticRegression,0.9389,0.8675,0.7701,0.6734,0.8993,8.55,480000,120000,A
+tfidf,LinearSVC,0.9403,0.868,0.7704,0.6848,0.8805,11.89,480000,120000,A
+count,MultinomialNB,0.9373,0.8515,0.7387,0.7024,0.7789,0.06,480000,120000,A
+count,LogisticRegression,0.9329,0.8542,0.747,0.6541,0.8708,169.87,480000,120000,A
