@@ -13,6 +13,11 @@ template/
 综合实验1_实验报告.docx
 综合实验1_实验报告.pdf
 综合实验1_汇报PPT.pptx
+综合实验1_汇报PPT_学术风.pptx
+综合实验1_汇报PPT_学术风.pdf
+
+# PPT 设计流程的中间工作区（含渲染图，体积大）
+ppt_tasks/
 
 # 冒烟测试 / 快速迭代产物
 output/tables/*_smoke*
