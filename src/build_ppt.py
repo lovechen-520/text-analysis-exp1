@@ -183,9 +183,9 @@ def build():
     s = blank(prs); title_bar(s, "文本清洗与分词（任务 4）")
     bullets(s, [
         "清洗：去 URL / 换行 / 标点 / 表情，仅保留中英文数字",
-        "jieba 精确模式 + 餐饮领域词典（120 词）+ 自建停用词表（500 词）",
-        "全量 594 M 字符，16 进程分词 238 s，词表 111 万",
-        "缓存 2,979,614 行带标签分词（334.6 MB），特征与词云复用",
+        "jieba 精确模式 + 餐饮领域词典（120 词）+ 公开停用词表（四表合并 2,437 词）",
+        "全量 594 M 字符，16 进程分词 215 s，词表 111 万",
+        "缓存 2,979,614 行带标签分词，特征与词云复用",
     ], w=Inches(6.4), size=15)
     sample = pd.DataFrame({
         "原始": ["这家火锅很好吃，服务也不错", "服务员态度极差，上菜很慢"],
@@ -216,9 +216,9 @@ def build():
     s = blank(prs); title_bar(s, "评估与推理演示（任务 8）")
     picture(s, "fig08_confusion_demo.png", Inches(0.6), Inches(1.5), w=Inches(5.6))
     bullets(s, [
-        "演示 20 万：accuracy 0.9430，macro-F1 0.8700",
-        "差评：precision 0.7069 / recall 0.8519",
-        "好评：precision 0.9805 / recall 0.9547",
+        "演示 20 万：accuracy 0.9371，macro-F1 0.8573",
+        "差评：precision 0.6835 / recall 0.8323",
+        "好评：precision 0.9779 / recall 0.9505",
         "推理示例 → “味道非常好…” = 好评；“难吃死了…” = 差评",
     ], x=Inches(6.6), y=Inches(1.6), w=Inches(6.1), size=15)
 
@@ -229,14 +229,14 @@ def build():
     tb = pd.read_csv(TAB / "model_compare_B_60w.csv")
     df = pd.DataFrame({
         "口径": ["A 主（剔除三星）", "B 对照（三星并入差评）"],
-        "最佳模型": ["LinearSVC (tfidf)", "LogisticRegression (tfidf)"],
+        "最佳模型": ["LogisticRegression (tfidf)", "LogisticRegression (tfidf)"],
         "accuracy": [ta["accuracy"].max(), tb["accuracy"].max()],
         "macro-F1": [ta["macro_f1"].max(), tb["macro_f1"].max()],
-        "差评 recall": [0.8805, 0.7279],
+        "差评 recall": [0.8905, 0.7144],
     }).round(4)
     table(s, df, Inches(1.2), Inches(2.0), Inches(11.0), Inches(1.6), font=15)
     textbox(s, Inches(1.2), Inches(4.3), Inches(11.0), Inches(1.6),
-            "结论：三星文本语义中性、噪声大，强行并入差评使 accuracy 由 0.940 降至 0.752；\n"
+            "结论：三星文本语义中性、噪声大，强行并入差评使 accuracy 由 0.933 降至 0.742；\n"
             "因此主实验采用口径 A，并在报告中显式说明该选择。",
             size=16, color=C_DARK)
 
@@ -296,7 +296,7 @@ def build():
     n += 1
     s = blank(prs); title_bar(s, "结论与分工")
     bullets(s, [
-        "完成 11 项任务：清洗分词、TF-IDF 特征、3 模型对比、accuracy 0.94 / macro-F1 0.87",
+        "完成 11 项任务：清洗分词、TF-IDF 特征、3 模型对比、accuracy 0.933 / macro-F1 0.857",
         "数据质量决定结论：3.6 伪值、2009 前无评分、样本长尾必须显式处理",
         "可视化覆盖词云、Top10、周趋势、雷达图、单店交互",
         "不足：数据止于 2012、未用预训练模型、名称缺失 14%",

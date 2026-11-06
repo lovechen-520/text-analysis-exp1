@@ -235,7 +235,7 @@ def fill_principle(cell):
     clear_cell(cell)
     h2(cell, "1. 中文分词与停用词")
     par(cell, "中文文本没有天然空格，需先分词。实验使用 jieba 精确模式，对评论文本做清洗（去 URL、标点、表情）后切分，"
-              "并过滤停用词（自建约 500 词表，含哈工大/百度等词表整理结果）与无意义符号，得到词序列。", indent=True)
+              "并过滤停用词（公开四套停用词表合并：哈工大/百度/川大/中文，共 2,437 词）与无意义符号，得到词序列。", indent=True)
     h2(cell, "2. 文本表示：Count 与 TF-IDF")
     par(cell, "CountVectorizer 统计词频；TF-IDF 对词频加权：tf-idf(t,d)=tf(t,d)×log((1+N)/(1+df(t))+1)，"
               "以降低“的、了”等高频词的权重。实验使用词级 1–2 gram（min_df=5、max_features=50,000、sublinear_tf）。", indent=True)
@@ -339,8 +339,8 @@ def tokenize(s):
                         "团购 套餐 性价比 很 高 停车 方便"],
     })
     add_table(cell, sample, "表 5  清洗与分词示例")
-    par(cell, "全量 4,107,199 条评论（约 5.94 亿字符）采用 16 进程分词，耗时 238 秒，词表规模 111 万；"
-              "分词结果缓存为 2,979,614 行带标签样本（334.6 MB），供特征与词云复用。", indent=True)
+    par(cell, "全量 4,107,199 条评论（约 5.94 亿字符）采用 16 进程分词，耗时 215 秒，词表规模 111 万；"
+              "分词结果缓存为 2,979,614 行带标签样本，供特征与词云复用。", indent=True)
 
     # ---------------- 四、特征与划分
     h2(cell, "四、特征构造与数据划分（任务 5、6）")
@@ -370,12 +370,12 @@ for name, clf in models.items():
     tbl_a = pd.read_csv(TAB / "model_compare_A_60w.csv")
     show = table_model_results(tbl_a)
     add_table(cell, show, "表 6  口径 A 模型对比（60 万抽样）")
-    par(cell, "朴素贝叶斯 accuracy 最高（0.9450）但差评召回仅 0.5732，属于偏向多数类；逻辑回归与 LinearSVC 的 macro-F1 达 0.868，"
-              "差评召回提升到 0.88–0.90，综合两类均衡性选择 LinearSVC 作为主模型。", indent=True)
+    par(cell, "朴素贝叶斯 accuracy 最高（0.9414）但差评召回仅 0.5410，属于偏向多数类；逻辑回归 macro-F1 0.8569、LinearSVC 0.8550，"
+              "差评召回提升到 0.89/0.87，综合两类均衡性选择 LogisticRegression 作为主模型。", indent=True)
     add_pic(cell, "fig07_model_compare.png", "图 2  口径 A 各模型 accuracy 与 macro-F1 对比", width=13.4)
     add_pic(cell, "fig08_confusion_demo.png", "图 3  混淆矩阵（口径 A，LinearSVC，20 万演示样本）", width=10.5)
-    par(cell, "20 万演示样本评估结果：accuracy 0.9430、macro-F1 0.8700；差评 precision 0.7069 / recall 0.8519，"
-              "好评 precision 0.9805 / recall 0.9547。用户输入推理示例：", indent=True)
+    par(cell, "20 万演示样本评估结果：accuracy 0.9371、macro-F1 0.8573；差评 precision 0.6835 / recall 0.8323，"
+              "好评 precision 0.9779 / recall 0.9505。用户输入推理示例：", indent=True)
     for s in [
         "“菜的味道非常好，服务也很周到，下次还会再来！” → 好评",
         "“难吃死了，服务态度极差，环境也很脏，再也不来了。” → 差评",
@@ -385,14 +385,14 @@ for name, clf in models.items():
     tbl_b = pd.read_csv(TAB / "model_compare_B_60w.csv")
     add_table(cell, table_model_results(tbl_b), "表 7  口径 B（三星并入差评）模型对比（60 万抽样）")
     par(cell, "口径 B 类别更平衡（好评 57.8% / 差评 42.2%，其“全猜好评”基线为 57.8%），但三星文本语义中性、噪声大，"
-              "最佳 accuracy 0.7522、macro-F1 0.7474，明显低于口径 A（0.9403 / 0.8680），"
+              "最佳 accuracy 0.7423、macro-F1 0.7372，明显低于口径 A（0.9333 / 0.8569），"
               "说明把中性三星并入差评会引入标签噪声，口径 A 更合理。", indent=True)
     full_csv = TAB / "model_compare_A_full.csv"
     if full_csv.exists():
         full = pd.read_csv(full_csv)
         add_table(cell, table_model_results(full),
                   "表 8  口径 A 全量 194 万极化样本模型对比（训练 1,553,956 / 测试 388,490）")
-        par(cell, "全量训练后逻辑回归 accuracy 0.9395、macro-F1 0.8699，模型保存为 output/models/model_A_full.joblib"
+        par(cell, "全量训练后逻辑回归 accuracy 0.9333、macro-F1 0.8585，模型保存为 output/models/model_A_full.joblib"
                   "（本地生成，未纳入 GitHub 仓库），可直接推理。", indent=True)
 
     # ---------------- 六、词云
@@ -491,8 +491,8 @@ def fill_summary(cell):
     par(cell, "2. 主要结论：", indent=True, space_before=4)
     for s in [
         "数据质量决定结论：27.45% 的评分是均值填充伪值、2009 年 7 月前基本无有效评分，不识别会直接导致标签与图表错误；",
-        "口径 A 下 TF-IDF + LinearSVC 达到 accuracy 94.03%、macro-F1 0.868（全量 194 万模型 accuracy 0.9395、macro-F1 0.8699）；",
-        "把中性三星并入差评（口径 B）后最佳 accuracy 仅 0.7522（其全猜好评基线为 57.8%）、macro-F1 0.7474，"
+        "口径 A 下 TF-IDF + LogisticRegression 达到 accuracy 93.33%、macro-F1 0.8569（全量 194 万模型 accuracy 0.9333、macro-F1 0.8585）；",
+        "把中性三星并入差评（口径 B）后最佳 accuracy 仅 0.7423（其全猜好评基线为 57.8%）、macro-F1 0.7372，"
         "明显低于口径 A，说明标签口径对结论影响显著，必须显式说明；",
         "商户分析必须控制样本量：每店评论中位仅 3 条，Top10 需最小样本阈值与 Wilson 平滑；",
         "可视化结果与数据一致：好评率 88.62%，词云呈现“口味 > 环境 ≈ 服务”的评价结构。",

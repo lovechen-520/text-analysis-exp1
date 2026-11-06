@@ -4,17 +4,17 @@
 
 - 数据规模：4,107,199 条评论，241,360 家商户，时间跨度 2003-04 ~ 2012-02
 - 任务覆盖：实验要求的 11 项任务全部实现，对应 5 个 notebook 与 `src/` 模块
-- 关键结果：口径 A（好评 1 / 差评 0）下 **accuracy 0.9403、macro-F1 0.868**（60 万抽样）；全量 194 万极化样本 **accuracy 0.9395、macro-F1 0.8699**
+- 关键结果：口径 A（好评 1 / 差评 0）下 **accuracy 0.9333、macro-F1 0.8569**（60 万抽样）；全量 194 万极化样本 **accuracy 0.9333、macro-F1 0.8585**
 
 ## 主要结果
 
 | 实验 | 特征 | 模型 | accuracy | macro-F1 | 差评 recall |
 |---|---|---|---|---|---|
-| 口径 A（60 万抽样） | TF-IDF | MultinomialNB | 0.9450 | 0.8366 | 0.5732 |
-| 口径 A（60 万抽样） | TF-IDF | LogisticRegression | 0.9389 | 0.8675 | 0.8993 |
-| 口径 A（60 万抽样） | TF-IDF | **LinearSVC** | 0.9403 | **0.8680** | 0.8805 |
-| 口径 A（全量 194 万） | TF-IDF | **LogisticRegression** | **0.9395** | **0.8699** | 0.9148 |
-| 口径 B 对照（三星并入差评） | TF-IDF | LogisticRegression | 0.7522 | 0.7474 | 0.7279 |
+| 口径 A（60 万抽样） | TF-IDF | MultinomialNB | 0.9414 | 0.8226 | 0.5410 |
+| 口径 A（60 万抽样） | TF-IDF | **LogisticRegression** | 0.9333 | **0.8569** | 0.8905 |
+| 口径 A（60 万抽样） | TF-IDF | LinearSVC | 0.9337 | 0.8550 | 0.8662 |
+| 口径 A（全量 194 万） | TF-IDF | **LogisticRegression** | **0.9333** | **0.8585** | 0.9069 |
+| 口径 B 对照（三星并入差评） | TF-IDF | LogisticRegression | 0.7423 | 0.7372 | 0.7144 |
 
 > 说明：极化样本好评率 88.62%，"全猜好评"基线 accuracy = 88.63%，因此同时报告 macro-F1、差评类 P/R 与混淆矩阵。口径 B 准确率明显下降，说明把中性三星并入差评会引入标签噪声。
 
@@ -34,7 +34,7 @@
 
 - 数据集：大众点评商户点评 `yf_dianping`（ChineseNlpCorpus），字段与说明见
   <https://github.com/SophonPlus/ChineseNlpCorpus/blob/master/datasets/yf_dianping/intro.ipynb>。
-- 本仓库**不包含原始数据**（约 1.8 GB）与分词缓存（约 359 MB），仅包含源码、notebook 与图表。
+- 本仓库**不包含原始数据**（约 1.8 GB）与分词缓存（约 320 MB），仅包含源码、notebook 与图表。
 - 复现时把 `preprocessed_ratings.csv`、`restaurants.csv`、`links.csv` 放到本地数据目录，并修改 `src/config.py` 中的 `DATA_DIR`。
 
 ## 目录结构
@@ -61,7 +61,7 @@ text-analysis-exp1/
 ├─ output/
 │  ├─ figures/                   # 19 张结果图
 │  └─ tables/                    # 模型对比、混淆矩阵、Top10 等小表
-├─ stopwords.txt                 # 自建中文停用词表（约 500 词）
+├─ stopwords.txt                 # 中文停用词表（公开四表合并，2,437 词）
 ├─ userdict.txt                  # jieba 餐饮/点评领域词典
 └─ README.md
 ```
